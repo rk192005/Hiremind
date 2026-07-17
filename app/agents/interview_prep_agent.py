@@ -5,18 +5,16 @@ for top candidates based on JD-profile gaps.
 from __future__ import annotations
 
 import json
-import os
 import re
 import logging
 from typing import Any, Dict, List
+from app.pipeline.llm_client import generate_text, is_demo_mode
 
 logger = logging.getLogger(__name__)
 
 
 def _is_demo_mode() -> bool:
-    if os.getenv("DEMO_MODE", "").lower() in ("true", "1", "yes"):
-        return True
-    return not os.getenv("ANTHROPIC_API_KEY", "").strip()
+    return is_demo_mode()
 
 
 INTERVIEW_SYSTEM = """You are a senior technical interviewer. Given a job description and a candidate profile, generate exactly 3 tailored interview questions.
@@ -36,11 +34,8 @@ Return ONLY valid JSON — no markdown fences:
 }"""
 
 
-def _generate_with_claude(candidate: Dict[str, Any], parsed_jd: Dict[str, Any]) -> List[Dict[str, str]]:
-    """Generate interview questions using Claude."""
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+def _generate_with_llm(candidate: Dict[str, Any], parsed_jd: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Generate interview questions using the LLM pipeline."""
 
     cand_skills = ", ".join(candidate.get("skills", []))
     jd_skills = ", ".join(parsed_jd.get("required_skills", []))
@@ -57,18 +52,15 @@ def _generate_with_claude(candidate: Dict[str, Any], parsed_jd: Dict[str, Any]) 
         f"  Summary: {candidate.get('summary', '')}"
     )
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1024,
-        system=INTERVIEW_SYSTEM,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-
-    raw = message.content[0].text
-    raw = re.sub(r"```json\s*", "", raw)
-    raw = re.sub(r"```\s*", "", raw)
-    data = json.loads(raw)
-    return data.get("questions", [])
+    try:
+        raw = generate_text(INTERVIEW_SYSTEM, user_prompt, response_format="json_object")
+        raw = re.sub(r"```json\s*", "", raw)
+        raw = re.sub(r"```\s*", "", raw)
+        data = json.loads(raw)
+        return data.get("questions", [])
+    except Exception as e:
+        logger.error(f"Failed to parse LLM interview prep JSON: {e}")
+        return []
 
 
 def _generate_demo_questions(candidate: Dict[str, Any], parsed_jd: Dict[str, Any]) -> List[Dict[str, str]]:
@@ -146,7 +138,7 @@ def generate_interview_questions(
             if demo_mode:
                 questions = _generate_demo_questions(cand, parsed_jd)
             else:
-                questions = _generate_with_claude(cand, parsed_jd)
+                questions = _generate_with_llm(cand, parsed_jd)
         except Exception as e:
             logger.warning("Interview question generation failed for %s: %s", cand.get("name"), e)
             questions = _generate_demo_questions(cand, parsed_jd)

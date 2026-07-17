@@ -16,21 +16,7 @@ logger = logging.getLogger(__name__)
 # Anthropic-powered parsing
 # ---------------------------------------------------------------------------
 
-def _get_anthropic_client():
-    import anthropic
-    return anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-
-
-def _call_claude(system_prompt: str, user_prompt: str) -> str:
-    """Make a single Claude API call and return the text response."""
-    client = _get_anthropic_client()
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2048,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-    return message.content[0].text
+from app.pipeline.llm_client import generate_text, is_demo_mode
 
 
 # ---------------------------------------------------------------------------
@@ -52,11 +38,11 @@ Return ONLY valid JSON with this exact schema — no markdown fences, no comment
 
 def parse_job_description(jd: str) -> Dict[str, Any]:
     """Parse a job description into structured fields."""
-    if _is_demo_mode():
+    if is_demo_mode():
         return _demo_parse_jd(jd)
 
     try:
-        raw = _call_claude(JD_SYSTEM_PROMPT, jd)
+        raw = generate_text(JD_SYSTEM_PROMPT, jd, response_format="json_object")
         # Strip markdown fences if present
         raw = re.sub(r"```json\s*", "", raw)
         raw = re.sub(r"```\s*", "", raw)
@@ -83,11 +69,11 @@ Return ONLY valid JSON with this exact schema — no markdown fences, no comment
 
 def parse_resume(resume_text: str) -> Dict[str, Any]:
     """Parse a single resume into structured fields."""
-    if _is_demo_mode():
+    if is_demo_mode():
         return _demo_parse_resume(resume_text)
 
     try:
-        raw = _call_claude(RESUME_SYSTEM_PROMPT, resume_text)
+        raw = generate_text(RESUME_SYSTEM_PROMPT, resume_text, response_format="json_object")
         raw = re.sub(r"```json\s*", "", raw)
         raw = re.sub(r"```\s*", "", raw)
         return json.loads(raw)
@@ -108,9 +94,7 @@ def parse_resumes(resume_texts: List[str]) -> List[Dict[str, Any]]:
 def _is_demo_mode() -> bool:
     if os.getenv("DEMO_MODE", "").lower() in ("true", "1", "yes"):
         return True
-    if not os.getenv("ANTHROPIC_API_KEY", "").strip():
-        return True
-    return False
+    return is_demo_mode()
 
 
 _COMMON_SKILLS = [

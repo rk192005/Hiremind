@@ -9,6 +9,7 @@ import os
 import re
 import logging
 from typing import Any, Dict, List
+from app.pipeline.llm_client import generate_text, is_demo_mode
 
 logger = logging.getLogger(__name__)
 
@@ -98,10 +99,7 @@ def _rerank_with_claude(
     candidates: List[Dict[str, Any]],
     parsed_jd: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
-    """Use Claude to add justifications and optional score adjustments."""
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    """Use the LLM client to add justifications and optional score adjustments."""
 
     # Build prompt
     jd_summary = parsed_jd.get("summary", "")
@@ -120,14 +118,7 @@ def _rerank_with_claude(
         f"Candidates (ranked by algorithm):\n" + "\n".join(cand_summaries)
     )
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2048,
-        system=RERANK_SYSTEM,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-
-    raw = message.content[0].text
+    raw = generate_text(RERANK_SYSTEM, user_prompt, response_format="json_object")
     raw = re.sub(r"```json\s*", "", raw)
     raw = re.sub(r"```\s*", "", raw)
     return json.loads(raw)
@@ -186,8 +177,7 @@ def score_candidates(
     scored = compute_hybrid_scores(candidates, parsed_jd)
 
     # Re-rank pass
-    demo_mode = os.getenv("DEMO_MODE", "").lower() in ("true", "1", "yes") or \
-                not os.getenv("ANTHROPIC_API_KEY", "").strip()
+    demo_mode = os.getenv("DEMO_MODE", "").lower() in ("true", "1", "yes") or is_demo_mode()
 
     if demo_mode:
         reranked = _demo_justifications(scored, parsed_jd)
