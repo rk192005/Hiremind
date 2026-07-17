@@ -1,0 +1,26 @@
+# FastAPI
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+pydantic>=2.11.0
+
+# AI / LLM
+anthropic>=0.52.0
+langchain-core>=0.3.60
+langgraph>=0.4.0
+langsmith>=0.3.40
+
+# Embeddings & Vector DB
+sentence-transformers>=3.4.0
+qdrant-client>=1.14.0
+
+# Numerical
+numpy>=2.2.0
+scipy>=1.15.0
+
+# Utilities
+python-dotenv>=1.1.0
+sse-starlette>=2.2.0
+
+# Evaluation
+pandas>=2.2.0
