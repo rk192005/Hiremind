@@ -1,0 +1,26 @@
+{
+  "hybrid_pipeline": {
+    "precision_at_5": 1.0,
+    "precision_at_10": 1.0,
+    "spearman_correlation": 0.9969,
+    "spearman_p_value": 0.0,
+    "num_predicted": 25,
+    "num_ground_truth": 25,
+    "num_overlap": 25
+  },
+  "semantic_baseline": {
+    "precision_at_5": 0.8,
+    "precision_at_10": 1.0,
+    "spearman_correlation": 0.9808,
+    "spearman_p_value": 0.0,
+    "num_predicted": 25,
+    "num_ground_truth": 25,
+    "num_overlap": 25
+  },
+  "improvement": {
+    "precision_at_5_delta": 0.2,
+    "precision_at_10_delta": 0.0,
+    "spearman_delta": 0.0161
+  },
+  "markdown_table": "## \ud83d\udcca Evaluation Results\n\nComparison of the **full hybrid pipeline** (semantic similarity + skill overlap + experience match + LLM re-rank) vs. a **pure semantic-similarity baseline** (embedding cosine only).\n\n| Metric | Hybrid Pipeline | Semantic Baseline | \u0394 Improvement |\n|--------|:-:|:-:|:-:|\n| **Precision@5** | 100% | 80% | +20% |\n| **Precision@10** | 100% | 100% | +0% |\n| **Spearman \u03c1** | 0.9969 | 0.9808 | +0.0161 |\n| **Spearman p-value** | 0.00e+00 | 0.00e+00 | \u2014 |\n\n> **n = 25** candidates evaluated against hand-labeled ground truth rankings.\n> The hybrid approach improves top-5 precision by **+20%** and rank correlation by **+0.0161** over pure embedding similarity, confirming that multi-signal scoring and LLM re-ranking add measurable value."
+}
