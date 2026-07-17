@@ -37,14 +37,14 @@ export default function HeroInput({ onSubmit, isLoading }) {
 
   const processFiles = async (files) => {
     const textFiles = files.filter(
-      (f) => f.type === 'text/plain' || f.name.endsWith('.txt') || f.name.endsWith('.md')
+      (f) => f.type === 'text/plain' || f.name.endsWith('.txt') || f.name.endsWith('.pdf') || f.name.endsWith('.doc') || f.name.endsWith('.docx')
     );
     const otherFiles = files.filter(
-      (f) => !f.type.startsWith('text/') && !f.name.endsWith('.txt') && !f.name.endsWith('.md')
+      (f) => !f.type.startsWith('text/') && !f.name.endsWith('.txt') && !f.name.endsWith('.pdf') && !f.name.endsWith('.doc') && !f.name.endsWith('.docx')
     );
 
     if (otherFiles.length > 0) {
-      setError('Only .txt and .md files are supported. PDF/DOCX support coming soon.');
+      setError('Only .txt, .pdf, and .doc/docx files are supported.');
     } else {
       setError('');
     }
@@ -200,14 +200,14 @@ Summary: ML engineer with publications in NeurIPS and ICML. Deployed production 
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".txt,.md"
+              accept=".txt,.pdf,.doc,.docx"
               onChange={handleFileSelect}
               className="hidden"
             />
             <div className="flex items-center justify-center gap-3">
               <Upload className={`w-5 h-5 transition-colors ${isDragOver ? 'text-hm-cyan' : 'text-hm-text-muted'}`} />
               <p className="text-hm-text-muted font-mono text-sm">
-                Drop resumes here <span className="opacity-50 text-xs">(txt, md)</span>
+                Drop resumes here <span className="opacity-50 text-xs">(txt, pdf, docx)</span>
               </p>
             </div>
           </div>
