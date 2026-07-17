@@ -138,6 +138,7 @@ def generate_interview_questions(
     Generate 3 tailored interview questions for the top-N candidates.
     Returns candidates with an added 'interview_questions' field.
     """
+    top_n = min(top_n, len(candidates))
     demo_mode = _is_demo_mode()
 
     for cand in candidates[:top_n]:

@@ -74,8 +74,8 @@ export default function HeroInput({ onSubmit, isLoading }) {
       setError('Please enter a job description.');
       return;
     }
-    if (resumeTexts.length === 0) {
-      setError('Please upload at least one resume.');
+    if (resumeTexts.length < 2 || resumeTexts.length > 20) {
+      setError('Please upload between 2 and 20 resumes.');
       return;
     }
     setError('');
@@ -207,7 +207,7 @@ Summary: ML engineer with publications in NeurIPS and ICML. Deployed production 
             <div className="flex items-center justify-center gap-3">
               <Upload className={`w-5 h-5 transition-colors ${isDragOver ? 'text-hm-cyan' : 'text-hm-text-muted'}`} />
               <p className="text-hm-text-muted font-mono text-sm">
-                Drop resumes here <span className="opacity-50 text-xs">(txt, pdf, docx)</span>
+                Drop resumes here <span className="opacity-50 text-xs">(2-20 resumes, txt, pdf, docx)</span>
               </p>
             </div>
           </div>
@@ -274,8 +274,10 @@ Summary: ML engineer with publications in NeurIPS and ICML. Deployed production 
         {/* Submit button */}
         <button
           onClick={handleSubmit}
-          disabled={isLoading}
-          className="btn-glow w-full flex items-center justify-center gap-2"
+          disabled={isLoading || resumeTexts.length < 2 || resumeTexts.length > 20}
+          className={`btn-glow w-full flex items-center justify-center gap-2 ${
+            resumeTexts.length > 0 && (resumeTexts.length < 2 || resumeTexts.length > 20) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           {isLoading ? (
             <>

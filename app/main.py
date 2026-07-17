@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 class RankRequest(BaseModel):
     """Request body for the /rank endpoint."""
     job_description: str = Field(..., min_length=10, description="Full job description text")
-    resumes: List[str] = Field(..., min_length=1, description="List of resume texts")
+    resumes: List[str] = Field(..., min_length=2, max_length=20, description="List of resume texts (2 to 20 candidates)")
 
 
 class ScoreBreakdown(BaseModel):
